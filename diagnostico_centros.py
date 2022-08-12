@@ -3,6 +3,7 @@ import numpy as np
 import streamlit as st
 from PIL import Image
 import os
+from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
 
 #http://registro.sii.nl.gob.mx:8010/
 
@@ -10,28 +11,30 @@ import os
 st.write('<style>label.css-qrbaxs.effi0qh0 > label{font-weight: bold}</style>', unsafe_allow_html=True)
 st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
 
-image = Image.open('C:\\NL\\auxiliar\\sii.png')
+#image = Image.open('C:\\NL\\auxiliar\\sii.png')
 
 col1, col2 = st.columns(2)
 col1.header("Gobierno del Estado de Nuevo León")
-col2.image(image,width=300)
+#col2.image(image,width=300)
 st.subheader('Valoración de Centros comunitarios 2022')
 
-
-centros = pd.read_csv(r'C:\NL\centros_comunitarios\diagnostico\centros_comunitarios.csv', encoding='latin-1')
-
-
+centros = pd.read_csv(r'centros_comunitarios.csv', encoding="latin-1")
 
 st.write('###### Solicitamos su apoyo para contestar la siguiente encuesta de valoración')
 st.write("###### Selección de centro")
 col1,col2 = st.columns(2)
 cc = col1.selectbox("Selecciona el centro comunitario", centros['centro'].unique())
 
+direccion = centros.query("""centro==@cc""")
+gb = GridOptionsBuilder.from_dataframe(direccion)
+gb.configure_columns(["municipio", "calle", "entre_calles", "colonia", "CP"], editable=True)
+gridOptions = gb.build()
 
-col2.write("Dirección del centro comunitario")
-direccion = centros.query(f"""centro==@cc""")
-direccion = direccion.T
-col2.write(direccion)
+st.write(centros)
+with col2:
+    st.write("Dirección del centro comunitario")
+    AgGrid(direccion, gridOptions=gridOptions, theme="streamlit")
+
 
 #image upload and save to file
 @st.cache
